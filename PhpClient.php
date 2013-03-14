@@ -37,7 +37,7 @@ class PhpClient {
 	public $debug = false; // debug模式
 	public $followlocation = true; // 是否跟踪跳转
 	public $cookiefile; // 用于记录和使用cookie的文件
-	public $boundary = ''; // boundary of multipart
+	public static $boundary = ''; // boundary of multipart
 	
 	// 结果参数
 	private $_header; // response header
