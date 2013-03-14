@@ -225,6 +225,47 @@ class PhpClient {
 		return $this->_body;
 	}
 	
+	/**
+	 * 多重内容提交。用于图片上传等操作
+	 * @param array $params
+	 * @return string
+	 */
+	private static function build_http_query_multi($params) {
+		if (!$params) return '';
+	
+		uksort($params, 'strcmp');
+	
+		$pairs = array();
+	
+		self::$boundary = $boundary = uniqid('------------------');
+		$MPboundary = '--'.$boundary;
+		$endMPboundary = $MPboundary. '--';
+		$multipartbody = '';
+	
+		foreach ($params as $parameter => $value) {
+	
+			if( in_array($parameter, array('pic', 'image')) && $value{0} == '@' ) {
+				$url = ltrim( $value, '@' );
+				$content = file_get_contents( $url );
+				$array = explode( '?', basename( $url ) );
+				$filename = $array[0];
+	
+				$multipartbody .= $MPboundary . "\r\n";
+				$multipartbody .= 'Content-Disposition: form-data; name="' . $parameter . '"; filename="' . $filename . '"'. "\r\n";
+				$multipartbody .= "Content-Type: image/unknown\r\n\r\n";
+				$multipartbody .= $content. "\r\n";
+			} else {
+				$multipartbody .= $MPboundary . "\r\n";
+				$multipartbody .= 'content-disposition: form-data; name="' . $parameter . "\"\r\n\r\n";
+				$multipartbody .= $value."\r\n";
+			}
+	
+		}
+	
+		$multipartbody .= $endMPboundary;
+		return $multipartbody;
+	}
+	
 	private function getUserAgent()
 	{
 		if ($this->_user_agent !== null)
