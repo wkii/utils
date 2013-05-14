@@ -46,12 +46,6 @@ $this->widget('bootstrap.widgets.TbButton',array(
 	'url' => array('update','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>),
 ));
 echo "\n";
-$this->widget('bootstrap.widgets.TbButton',array(
-	'label' => '删除',
-	'type' => 'danger',
-	'size' => 'small',
-	'buttonType' => 'submitLink',
-	'htmlOptions'=>array('class'=>'delete','href'=>array('delete','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>),'confirm'=>'Are you sure you want to delete this item?'),
-));
+echo CHtml::linkButton('删除', array('class'=>'delete btn btn-danger btn-small','href'=>array('delete','id'=>$model-><?php echo $this->tableSchema->primaryKey; ?>), 'confirm'=>'Are you sure you want to delete this item?'));
 ?>
 </div>
