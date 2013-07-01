@@ -26,6 +26,6 @@ $this->menu=array(
 );
 ?>
 <fieldset>
-	<legend><h2>Update <?php echo $this->modelClass." <?php echo \$model->{$this->tableSchema->primaryKey}; ?>"; ?></h2></legend>
+	<legend>Update <?php echo $this->modelClass." <?php echo \$model->{$this->tableSchema->primaryKey}; ?>"; ?></legend>
 <?php echo "<?php echo \$this->renderPartial('_form',array('model'=>\$model)); ?>"; ?>
 </fieldset>

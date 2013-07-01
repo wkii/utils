@@ -22,6 +22,6 @@ $this->menu=array(
 );
 ?>
 <fieldset>
-	<legend><h2>Create <?php echo $this->modelClass; ?></h2></legend>
+	<legend>Create <?php echo $this->modelClass; ?></legend>
 <?php echo "<?php echo \$this->renderPartial('_form', array('model'=>\$model)); ?>"; ?>
 </fieldset>
