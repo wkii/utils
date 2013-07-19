@@ -2,6 +2,7 @@
 
 /**
  * session 集存中放memcache扩展
+ * 如果使用ZlibMemCache扩展，则把本类的继承改成ZlibMemCache
  * 可以指定多个memcache
  * @author Terry
  *
