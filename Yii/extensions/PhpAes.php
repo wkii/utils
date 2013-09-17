@@ -1,9 +1,16 @@
 <?php
-
+/**
+ * php AES加解密类
+ * 因为java只支持128位加密，所以php也用128位加密，可以与java互转。
+ * 同时AES的标准也是128位。只是RIJNDAEL算法可以支持128，192和256位加密。
+ * 
+ * @author Terry
+ *
+ */
 class PhpAes
 {
 	/**
-	 * This was AES-256 / CBC / ZeroBytePadding encrypted.
+	 * This was AES-128 / CBC / ZeroBytePadding encrypted.
 	 * return base64_encode string
 	 * @author Terry
 	 * @param string $plaintext
@@ -13,20 +20,20 @@ class PhpAes
 	{
 		if(!extension_loaded('mcrypt'))
 			throw new CException(Yii::t('yii','AesEncrypt requires PHP mcrypt extension to be loaded in order to use data encryption feature.'));
-		
-		$module = mcrypt_module_open(MCRYPT_RIJNDAEL_256, '', MCRYPT_MODE_CBC, '');
+	
+		$module = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_CBC, '');
 		$key=self::substr($key===null ? Yii::app()->params['encryptKey'] : $key, 0, mcrypt_enc_get_key_size($module));
 		/* Create the IV and determine the keysize length, use MCRYPT_RAND
 		 * on Windows instead */
 		srand();
 		$iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($module), MCRYPT_RAND);
-		
+	
 		/* Intialize encryption */
 		mcrypt_generic_init($module, $key, $iv);
-		
+	
 		/* Encrypt data */
 		$encrypted = $iv.mcrypt_generic($module, $plaintext);
-		
+	
 		/* Terminate encryption handler */
 		mcrypt_generic_deinit($module);
 		mcrypt_module_close($module);
@@ -34,7 +41,7 @@ class PhpAes
 	}
 	
 	/**
-	 * This was AES-256 / CBC / ZeroBytePadding decrypted.
+	 * This was AES-128 / CBC / ZeroBytePadding decrypted.
 	 * @author Terry
 	 * @param string $encrypted	base64_encode encrypted string
 	 * @param string $key
@@ -45,19 +52,19 @@ class PhpAes
 	{
 		if(!extension_loaded('mcrypt'))
 			throw new CException(Yii::t('yii','AesDecrypt requires PHP mcrypt extension to be loaded in order to use data encryption feature.'));
-		
+	
 		$ciphertext_dec = base64_decode($encrypted);
-		$module = mcrypt_module_open(MCRYPT_RIJNDAEL_256, '', MCRYPT_MODE_CBC, '');
+		$module = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_CBC, '');
 		$key=self::substr($key===null ? Yii::app()->params['encryptKey'] : $key, 0, mcrypt_enc_get_key_size($module));
 		$ivSize=mcrypt_enc_get_iv_size($module);
 		$iv=substr($ciphertext_dec,0,$ivSize);
 		
 		/* Initialize encryption module for decryption */
 		mcrypt_generic_init($module, $key, $iv);
-		
+	
 		/* Decrypt encrypted string */
 		$decrypted = mdecrypt_generic($module, substr($ciphertext_dec,$ivSize,self::strlen($ciphertext_dec)));
-		
+	
 		/* Terminate decryption handle and close module */
 		mcrypt_generic_deinit($module);
 		mcrypt_module_close($module);
