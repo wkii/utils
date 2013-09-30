@@ -18,26 +18,26 @@ class PhpAes
 	 */
 	public static function AesEncrypt($plaintext,$key = null)
 	{
+		if ($plaintext == '') return '';
 		if(!extension_loaded('mcrypt'))
 			throw new CException(Yii::t('yii','AesEncrypt requires PHP mcrypt extension to be loaded in order to use data encryption feature.'));
-	
+		$size = mcrypt_get_block_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);
+		$plaintext = self::PKCS5Padding($plaintext, $size);
 		$module = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_CBC, '');
 		$key=self::substr($key===null ? Yii::app()->params['encryptKey'] : $key, 0, mcrypt_enc_get_key_size($module));
 		/* Create the IV and determine the keysize length, use MCRYPT_RAND
 		 * on Windows instead */
-		srand();
-		$iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($module), MCRYPT_RAND);
-	
+		$iv = substr(md5($key),0,mcrypt_enc_get_iv_size($module));
 		/* Intialize encryption */
 		mcrypt_generic_init($module, $key, $iv);
 	
 		/* Encrypt data */
-		$encrypted = $iv.mcrypt_generic($module, $plaintext);
-	
+		$encrypted = mcrypt_generic($module, $plaintext);
+		
 		/* Terminate encryption handler */
 		mcrypt_generic_deinit($module);
 		mcrypt_module_close($module);
-		return str_replace('=','',base64_encode($encrypted));
+		return base64_encode(trim($encrypted));
 	}
 	
 	/**
@@ -50,25 +50,26 @@ class PhpAes
 	 */
 	public static function AesDecrypt($encrypted, $key = null)
 	{
+		if ($encrypted == '') return '';
 		if(!extension_loaded('mcrypt'))
 			throw new CException(Yii::t('yii','AesDecrypt requires PHP mcrypt extension to be loaded in order to use data encryption feature.'));
 	
 		$ciphertext_dec = base64_decode($encrypted);
 		$module = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_CBC, '');
 		$key=self::substr($key===null ? Yii::app()->params['encryptKey'] : $key, 0, mcrypt_enc_get_key_size($module));
-		$ivSize=mcrypt_enc_get_iv_size($module);
-		$iv=substr($ciphertext_dec,0,$ivSize);
+		
+		$iv = substr(md5($key),0,mcrypt_enc_get_iv_size($module));
 		
 		/* Initialize encryption module for decryption */
 		mcrypt_generic_init($module, $key, $iv);
 	
 		/* Decrypt encrypted string */
-		$decrypted = mdecrypt_generic($module, substr($ciphertext_dec,$ivSize,self::strlen($ciphertext_dec)));
+		$decrypted = mdecrypt_generic($module, $ciphertext_dec);
 	
 		/* Terminate decryption handle and close module */
 		mcrypt_generic_deinit($module);
 		mcrypt_module_close($module);
-		return trim($decrypted);
+		return self::UnPKCS5Padding($decrypted);
 	}
 	
 	/**
@@ -93,5 +94,18 @@ class PhpAes
 	private static function substr($string,$start,$length)
 	{
 		return extension_loaded('mbstring') ? mb_substr($string,$start,$length,'8bit') : substr($string,$start,$length);
+	}
+	
+	private static function PKCS5Padding ($text, $blocksize) {
+		$pad = $blocksize - (self::strlen($text) % $blocksize);
+		return $text . str_repeat(chr($pad), $pad);
+	}
+	
+	private static function UnPKCS5Padding($text)
+	{
+		$pad = ord($text{self::strlen($text)-1});
+		if ($pad > self::strlen($text)) return false;
+		if (strspn($text, chr($pad), self::strlen($text) - $pad) != $pad) return false;
+		return substr($text, 0, -1 * $pad);
 	}
 }
