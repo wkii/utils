@@ -1,8 +1,10 @@
 <?php
 /**
  * php AES加解密类
+ * 如果要与java共用，则密钥长度应该为16位长度
  * 因为java只支持128位加密，所以php也用128位加密，可以与java互转。
  * 同时AES的标准也是128位。只是RIJNDAEL算法可以支持128，192和256位加密。
+ * java 要使用AES/CBC/NoPadding标准来加解密
  * 
  * @author Terry
  *
@@ -18,11 +20,11 @@ class PhpAes
 	 */
 	public static function AesEncrypt($plaintext,$key = null)
 	{
+		$plaintext = trim($plaintext);
 		if ($plaintext == '') return '';
 		if(!extension_loaded('mcrypt'))
 			throw new CException(Yii::t('yii','AesEncrypt requires PHP mcrypt extension to be loaded in order to use data encryption feature.'));
 		$size = mcrypt_get_block_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);
-		$plaintext = self::PKCS5Padding($plaintext, $size);
 		$module = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_CBC, '');
 		$key=self::substr($key===null ? Yii::app()->params['encryptKey'] : $key, 0, mcrypt_enc_get_key_size($module));
 		/* Create the IV and determine the keysize length, use MCRYPT_RAND
@@ -37,13 +39,13 @@ class PhpAes
 		/* Terminate encryption handler */
 		mcrypt_generic_deinit($module);
 		mcrypt_module_close($module);
-		return base64_encode(trim($encrypted));
+		return base64_encode($encrypted);
 	}
 	
 	/**
 	 * This was AES-128 / CBC / ZeroBytePadding decrypted.
 	 * @author Terry
-	 * @param string $encrypted	base64_encode encrypted string
+	 * @param string $encrypted		base64_encode encrypted string
 	 * @param string $key
 	 * @throws CException
 	 * @return string
@@ -69,7 +71,7 @@ class PhpAes
 		/* Terminate decryption handle and close module */
 		mcrypt_generic_deinit($module);
 		mcrypt_module_close($module);
-		return self::UnPKCS5Padding($decrypted);
+		return rtrim($decrypted,"\0");
 	}
 	
 	/**
@@ -94,18 +96,5 @@ class PhpAes
 	private static function substr($string,$start,$length)
 	{
 		return extension_loaded('mbstring') ? mb_substr($string,$start,$length,'8bit') : substr($string,$start,$length);
-	}
-	
-	private static function PKCS5Padding ($text, $blocksize) {
-		$pad = $blocksize - (self::strlen($text) % $blocksize);
-		return $text . str_repeat(chr($pad), $pad);
-	}
-	
-	private static function UnPKCS5Padding($text)
-	{
-		$pad = ord($text{self::strlen($text)-1});
-		if ($pad > self::strlen($text)) return false;
-		if (strspn($text, chr($pad), self::strlen($text) - $pad) != $pad) return false;
-		return substr($text, 0, -1 * $pad);
 	}
 }
