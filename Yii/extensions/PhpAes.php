@@ -12,7 +12,7 @@
 class PhpAes
 {
 	/**
-	 * This was AES-128 / CBC / ZeroBytePadding encrypted.
+	 * This was AES-128 / CBC / NoPadding encrypted.
 	 * return base64_encode string
 	 * @author Terry
 	 * @param string $plaintext
@@ -43,7 +43,7 @@ class PhpAes
 	}
 	
 	/**
-	 * This was AES-128 / CBC / ZeroBytePadding decrypted.
+	 * This was AES-128 / CBC / NoPadding decrypted.
 	 * @author Terry
 	 * @param string $encrypted		base64_encode encrypted string
 	 * @param string $key
